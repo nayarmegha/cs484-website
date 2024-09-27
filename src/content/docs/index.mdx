@@ -21,7 +21,7 @@ hero:
 import ClassCardGrid from "../../components/ClassCardGrid.astro";
 import TimedRender from "../../components/TimedRender.astro";
 import { Aside } from "@astrojs/starlight/components"
-
+import UpcomingDeadlines from "../../components/UpcomingDeadlines.astro";
 
 { new Date() < new Date("2024-09-06T17:00:00-05:00") && 
 <Aside type="caution" title="Interested in registering for CS 484 in Fall 2024?">
@@ -34,6 +34,8 @@ If you're interested in registering for this class, you must have turned in the 
 This is the course website for Fall 2024 CS 484. If you're seeing this note, the course has concluded.
 </Aside>
 }
+
+<UpcomingDeadlines/>
 
 ## Class coordinates
 

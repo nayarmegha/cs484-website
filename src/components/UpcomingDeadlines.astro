@@ -1,0 +1,84 @@
+---
+import { getCollection } from "astro:content";
+import { localizeTime, formatTime } from "../utils";
+
+const exams = (await getCollection("exams")).map((entry) => {
+  return {
+    type: "exam",
+    title: entry.data.title,
+    date: localizeTime(entry.data.date),
+    content: entry.data.content,
+    notes: entry.data.notes,
+  };
+});
+
+const homeworks = (
+  await getCollection("docs", (entry) => entry.id.startsWith("homework"))
+).map((entry) => ({
+  slug: entry.slug,
+  type: "homework due",
+  title: entry.data.title,
+  date: localizeTime(entry.data.due),
+  content: "",
+}));
+
+const lectures = (
+  await getCollection("docs", (entry) => entry.id.startsWith("lecture"))
+).map((entry) => {
+  return {
+    slug: entry.slug,
+    type: "lecture",
+    title: entry.data.title,
+    date: localizeTime(entry.data.date),
+    readings: entry.data.readings,
+    notes: entry.data.notes,
+  };
+});
+
+const upcomingDeadlines = [...exams, ...homeworks, ...lectures]
+  .sort((a, b) => +a.date! - +b.date!)
+  .filter((exam) => {
+    return +exam.date! > Date.now();
+  });
+---
+
+<div>
+  <h2>Upcoming</h2>
+  {
+    upcomingDeadlines.length > 0 ? (
+      <ul>
+        {upcomingDeadlines.map((deadline) => (
+          <li>
+            <h5>
+              {deadline.type === "lecture" ? "Lecture Readings: " : ""}
+              {deadline.type === "homework due" && deadline.slug ? (
+                <a href={`/${deadline.slug}/`} target="_blank">
+                  {deadline.title}
+                </a>
+              ) : (
+                deadline.title
+              )}
+            </h5>
+            {deadline.content && <p>Topic: {deadline.content}</p>}
+            {deadline.type === "lecture" && deadline.readings && (
+              <ul>
+                {deadline.readings.map((reading) => (
+                  <li>
+                    <a href={reading.link} target="_blank">
+                      {reading.name}
+                    </a>
+                    {reading.grad_only && <span title="grad only">🧑‍🎓</span>}
+                    {reading.optional && <span title="not on quiz">📵</span>}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p>Due: {formatTime(deadline.date)}</p>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p>No upcoming deadlines</p>
+    )
+  }
+</div>
